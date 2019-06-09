@@ -1,8 +1,10 @@
+import time
+from _datetime import datetime
 from django import http
 from django.core.paginator import Paginator
 from django.shortcuts import render
 from django.views import View
-from goods.models import GoodsCategory, SKU
+from goods.models import GoodsCategory, SKU, GoodVisitCount
 from meiduo_mall.utils.My_categoery import get_categories
 from meiduo_mall.utils.my_crumbs import get_crumbs
 
@@ -120,5 +122,30 @@ class SKUDetailView(View):
 
 #分类访问量类视图
 class GoodsVisitView(View):
+    def post(self,request,category_id):
+        #1获取分类对象
+        try:
+            category=GoodsCategory.objects.get(id=category_id)
+        except Exception as e :
+            return http.HttpResponseForbidden("分类不存在")
 
-    pass
+        #2获取当天时间
+        local_time=time.localtime()
+        current_str="%d-%02d-%02d"%(local_time.tm_year,local_time.tm_mon,local_time.tm_mday)
+        current_date=datetime.strptime(current_str,"%Y-%m-%d")
+
+        #3获取分类对象中的访问数量
+        try:
+            visit_count=category.visit_counts.get(date=current_date)
+        except Exception as e :
+            visit_count=GoodVisitCount()
+        #4设置访问对象的属性
+        visit_count.category_id=category_id
+        visit_count.date=current_date
+        visit_count.count +=1
+        #5数据入库
+        visit_count.save()
+        #6返回响应
+        return http.JsonResponse({"code":0,"errmsg":"success"})
+
+

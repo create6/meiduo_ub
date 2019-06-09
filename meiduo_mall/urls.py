@@ -31,8 +31,13 @@ urlpatterns = [
     url(r'^', include('areas.urls', namespace='areas')),
     #goods
     url(r'^', include('goods.urls', namespace='goods')),
+
     #search
     url(r'^search/', include('haystack.urls')),
+    #购物车
+    url(r'^', include('carts.urls', namespace='carts')),
+    #订单
+    url(r'^', include('orders.urls', namespace='orders')),
 
 
 ]

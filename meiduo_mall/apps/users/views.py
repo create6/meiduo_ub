@@ -7,6 +7,8 @@ from django.contrib.auth import authenticate, login, logout
 from django.shortcuts import render,redirect
 from django.views import View
 from django_redis import get_redis_connection
+
+from goods.models import SKU
 from .models import User, Address
 from meiduo_mall.utils.my_login_required import MyLoginRequiredMiXinView
 #类视图,注册
@@ -108,7 +110,7 @@ class CheckMobileView(View):
         }
         return http.JsonResponse(data)
 
-#登录
+#登录,此处post方法中可以加入合并购物车功能
 class LoginView(View):
     def get(self,request):
         return render(request,'login.html')
@@ -134,8 +136,6 @@ class LoginView(View):
             # 2,3 密码格式校验
         if not re.match(r'^[0-9A-Za-z]{8,20}$', pwd):
             return http.HttpResponseForbidden("密码格式有误")
-
-
         # # 判断是否是会员
         # count = User.objects.filter(username=username).count()
         # if count ==0:
@@ -164,9 +164,12 @@ class LoginView(View):
         else:
             request.session.set_expiry(0)
 
+        from carts.utils import merge_cookie_redis_cart
         #登录成功
         response = redirect("/")
         response.set_cookie("username",user.username,3600*24*2)
+        #合并购物车
+        response=merge_cookie_redis_cart(request,user,response)
         return response
 
 #logout
@@ -434,5 +437,54 @@ class ModifyPassWordView(MyLoginRequiredMiXinView):
     #
     #     pass
 
+#BrowseHistoryView
+class BrowseHistoryView(MyLoginRequiredMiXinView):
+    #保存浏览记录
+    def post(self,request):
+        #1获取参数
+        dict_data=json.loads(request.body.decode())
+        sku_id=dict_data.get("sku_id")
+        user=request.user
+
+        #2校验参数
+        if not sku_id:
+            return http.HttpResponseForbidden("参数不全")
+        try:
+            sku=SKU.objects.get(id=sku_id)
+        except Exception as e:
+            return http.HttpResponseForbidden("商品不存在")
+        #3数据入库
+        redis_conn=get_redis_connection("history")
+        #3.1 去重
+        redis_conn.lrem("history_%s"%user.id,0,sku_id)
+
+        #3.2 存储
+        redis_conn.lpush("history_%s"%user.id,sku_id)
+
+        #3.3 截取
+        redis_conn.ltrim("history_%s"%user.id,0,4)
+        #4返回响应
+        return http.JsonResponse({"code":0,"errmsg":"ok"})
+
+    #获取浏览记录，user_center_info.js 中发出的请求
+    #存取的数据名称要一致
+    def get(self,request):
+        #1,获取redis中的数据
+        redis_conn=get_redis_connection("history")
+        sku_ids=redis_conn.lrange("history_%s"%request.user.id,0,4)
+        #2数据拼接
+        sku_list=[]
+        for sku_id in sku_ids:
+            sku=SKU.objects.get(id=sku_id)
+            sku_dict={
+                "id":sku.id,
+                "default_image_url":sku.default_image_url.url,
+                "name":sku.name,
+                "price":sku.price,
+            }
+            sku_list.append(sku_dict)
+
+        #3返回
+        return http.JsonResponse({"skus":sku_list})
 
 

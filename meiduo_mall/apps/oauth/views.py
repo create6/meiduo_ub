@@ -8,7 +8,7 @@ from QQLoginTool.QQtool import OAuthQQ
 from oauth.models import OAuthQQUser
 from oauth.utils import generate_sign_openid,decode_sign_openid
 from django_redis import get_redis_connection
-
+from carts.utils import merge_cookie_redis_cart#合并购物车
 from users.models import User
 
 
@@ -63,6 +63,8 @@ class OAuthUserView(View):
             request.session.set_expiry(3600*24*2)
             response=redirect("/")
             response.set_cookie("username",user.username)
+            # 合并购物车
+            response = merge_cookie_redis_cart(request, user, response)
             #返回响应
             return response
 
@@ -119,6 +121,8 @@ class OAuthUserView(View):
             # 3.4返回首页
             response = redirect("/")
             response.set_cookie("username", user.username, max_age=3600 * 24 * 2)
+            # 合并购物车
+            response = merge_cookie_redis_cart(request, user, response)
             return response
 
         else:
@@ -132,6 +136,8 @@ class OAuthUserView(View):
             #4.2返回首页
             response=redirect("/")
             response.set_cookie("username",user.username,max_age=3600*24*2)
+            # 合并购物车
+            response = merge_cookie_redis_cart(request, user, response)
             return response
 
 

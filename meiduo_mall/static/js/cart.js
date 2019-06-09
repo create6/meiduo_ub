@@ -115,7 +115,7 @@ var vm = new Vue({
                 })
                 .then(response => {
                     if (response.data.code == '0') {
-                        // this.carts[index].count = response.data.cart_sku.count; // 无法触发页面更新
+                        this.carts[index].count = response.data.cart_sku.count; // 无法触发页面更新
                         Vue.set(this.carts, index, response.data.cart_sku); // 触发页面更新
                         // 重新计算界面的价格和数量
                         this.compute_total_selected_amount_count();
@@ -149,7 +149,16 @@ var vm = new Vue({
                 })
                 .then(response => {
                     if (response.data.code == '0') {
-                        this.carts[index].selected = response.data.cart_sku.selected;
+
+                         if(response.data.cart_sku.selected=='True'){
+                    this.carts[index].selected=true;
+                } else {
+                    this.carts[index].selected=false;
+                }
+
+
+
+                        // this.carts[index].selected = response.data.cart_sku.selected;
                         // 重新计算界面的价格和数量
                         this.compute_total_selected_amount_count();
                         this.compute_total_count();

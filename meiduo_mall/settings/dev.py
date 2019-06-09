@@ -47,6 +47,9 @@ INSTALLED_APPS = (
     'areas.apps.AreasConfig',
     'goods',
     'haystack', #全文检索
+    'carts.apps.CartsConfig',
+    'orders.apps.OrdersConfig',
+
 
 
 
@@ -104,7 +107,7 @@ DATABASES = {
         'PORT': '3306',
     }
 }
-#配置redis,应用 log ，图片验证码,    caches:缓存
+#配置redis,应用log，图片验证码, caches:缓存,浏览记录
 CACHES = {
     "default": {
         "BACKEND": "django_redis.cache.RedisCache",
@@ -128,7 +131,20 @@ CACHES = {
             "CLIENT_CLASS": "django_redis.client.DefaultClient",
         }
     },
-
+    "history": {
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": "redis://127.0.0.1:6379/3",
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
+        }
+    },
+    "cart": {
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": "redis://127.0.0.1:6379/4",
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
+        }
+    },
 
 }
 

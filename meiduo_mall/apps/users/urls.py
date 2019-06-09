@@ -29,6 +29,8 @@ urlpatterns=[
     url(r'^addresses/(?P<address_id>\d+)/title/$',views.AddressTitleView.as_view(),name='address_title'),
     #modify password
     url(r'^password/$',views.ModifyPassWordView.as_view(),name='modify_password'),
+    #浏览记录，路径来自detail.js请求:var url = this.hots + '/browse_histories/'
+    url(r'^browse_histories/$',views.BrowseHistoryView.as_view(),name='modify_password'),
 
 
 
