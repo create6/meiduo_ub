@@ -38,6 +38,8 @@ urlpatterns = [
     url(r'^', include('carts.urls', namespace='carts')),
     #订单
     url(r'^', include('orders.urls', namespace='orders')),
+    #支付
+    url(r'^', include('payment.urls', namespace='payment')),
 
 
 ]

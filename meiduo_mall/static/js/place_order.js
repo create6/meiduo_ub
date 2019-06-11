@@ -5,11 +5,12 @@ var vm = new Vue({
     data: {
         host: host,
         order_submitting: false, // 正在提交订单标志
-        pay_method: 2, // 支付方式,默认支付宝支付
+        pay_method: 2, // 支付方式,默认支付宝支付./不使用默认值
         nowsite: '', // 默认地址
         payment_amount: '',
     },
     mounted(){
+
         // 初始化
         this.payment_amount = payment_amount;
         // 绑定默认地址
@@ -52,6 +53,7 @@ var vm = new Vue({
                     .catch(error => {
                         this.order_submitting = false;
                         console.log(error.response);
+                        // alert("系统繁忙")
                     })
             }
         }

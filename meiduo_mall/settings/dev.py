@@ -49,6 +49,7 @@ INSTALLED_APPS = (
     'haystack', #全文检索
     'carts.apps.CartsConfig',
     'orders.apps.OrdersConfig',
+    'payment.apps.PaymentConfig',
 
 
 
@@ -262,3 +263,13 @@ HAYSTACK_CONNECTIONS = {
 HAYSTACK_SIGNAL_PROCESSOR = 'haystack.signals.RealtimeSignalProcessor'
 #每页显示的结果数
 HAYSTACK_SEARCH_RESULTS_PER_PAGE = 5
+
+#支付宝
+APLIPAY_PRIVATE_KEY = os.path.join(BASE_DIR,'apps/payment/key/app_private_key.pem')
+APLIPAY_PUBLIC_KEY = os.path.join(BASE_DIR,'apps/payment/key/app_public_key.pem')
+ALIPAY_APPID = '2016093000629834'  #我的
+# ALIPAY_APPID = '2016092700606753'#老师的
+ALIPAY_DEBUG = True
+ALIPAY_URL = 'https://openapi.alipaydev.com/gateway.do?'
+ALIPAY_RETURN_URL = 'http://www.meiduo.site:8000/payment/status/'
+

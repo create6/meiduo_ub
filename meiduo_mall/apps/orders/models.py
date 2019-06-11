@@ -4,7 +4,7 @@ from meiduo_mall.utils.models import BaseModel
 from users.models import Address
 from users.models import User
 
-
+#订单信息
 class OrderInfo(BaseModel):
     """订单信息"""
     PAY_METHODS_ENUM = {
@@ -31,7 +31,7 @@ class OrderInfo(BaseModel):
         (6, "已取消"),
     )
     order_id = models.CharField(max_length=64, primary_key=True, verbose_name="订单号")
-    user = models.ForeignKey(User, on_delete=models.PROTECT, verbose_name="下单用户")
+    user = models.ForeignKey(User,related_name='orders', on_delete=models.PROTECT, verbose_name="下单用户")
     address = models.ForeignKey(Address, on_delete=models.PROTECT, verbose_name="收货地址")
     total_count = models.IntegerField(default=1, verbose_name="商品总数")
     total_amount = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="商品总金额")
@@ -47,7 +47,7 @@ class OrderInfo(BaseModel):
     def __str__(self):
         return self.order_id
 
-
+#订单商品表
 class OrderGoods(BaseModel):
     """订单商品"""
     SCORE_CHOICES = (

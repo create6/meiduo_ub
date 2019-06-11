@@ -167,6 +167,7 @@ var vm = new Vue({
                 })
                 .catch(error => {
                     console.log(error.response);
+                    alert("库存不足");  //参数有误
                 })
         },
         // 获取购物车数据

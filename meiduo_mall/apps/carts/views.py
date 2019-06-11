@@ -33,7 +33,7 @@ class CartsView(View):
             return http.HttpResponseForbidden("商品不存在")
          #2.4校验库存是否充足
         if count > sku.stock:
-            return http.HttpResponseForbidden("库存不足")
+            return http.HttpResponseForbidden("库存不足!")
         #3 判断用户登录状态
         if user.is_authenticated:
             #登录状态（登录的用户）,读取redis里面的数据
