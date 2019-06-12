@@ -1,4 +1,5 @@
 import json
+import random
 import re
 from django import http
 from django.contrib.auth import authenticate, login, logout
@@ -398,7 +399,7 @@ class UpdateADDView(MyLoginRequiredMiXinView):
             "tel": address.tel,
             "email": address.email,
         }
-        return http.JsonResponse({"code": RET.OK, "address": address_dict})
+        return http.JsonResponse({"code": 0, "address": address_dict})
 
 
     def delete(self, request, address_id):
@@ -486,5 +487,139 @@ class BrowseHistoryView(MyLoginRequiredMiXinView):
 
         #3返回
         return http.JsonResponse({"skus":sku_list})
+
+#进入忘记密码页面
+class ForgotPwdView(View):
+    def get(self,request):
+
+        return render(request,"find_password.html")
+
+#忘记密码页面1
+class ForgotPwd1View(View):
+    def get(self,request,username):
+        #1获取参数
+        image_code = request.GET.get("text")
+        image_code_id = request.GET.get("image_code_id")
+        #2校验参数
+        #2.1为空
+        if not all([username,image_code,image_code_id]):
+            return http.JsonResponse("参数不全")
+        #2.2格式
+        if not re.match(r'^[a-zA-Z0-9_-]{5,20}$', username) or re.match(r'^[1][3-9]\d{9}$', username):
+            return http.JsonResponse("格式错误")
+        #2.3用户名存在在判断，用户名或者手机号
+        try:
+            if re.match('^1[3-9]\d{9}$', username):
+                # 手机号登录
+                user = User.objects.get(mobile=username)
+            else:
+                # 用户名登录
+                user = User.objects.get(username=username)
+        except User.DoesNotExist:
+            #用户不存在
+            return http.JsonResponse({"status":401})
+
+        #验证图片验证码正确性
+        # 2.2 校验图片验证码正确性，要取出redis中的值
+        redis_conn = get_redis_connection("code")
+        # redis_image_code 是二进制参数，需要转换
+        redis_image_code = redis_conn.get("image_code_%s/" % image_code_id)
+        # 2.3 判断是否过期
+        if not redis_image_code:
+            return http.JsonResponse({"status":4001})
+        # 删除图片，防止重新验证
+        redis_conn.delete("image_code_%s" % image_code_id)
+        # 判断图片验证码正确性,两者都转化为小写进行比较,
+        if image_code.lower() != redis_image_code.lower().decode():
+            return http.JsonResponse({"status":4001})
+
+        #返回及响应
+        mobile=user.mobile
+        return http.JsonResponse({"mobile":mobile})
+
+#忘记密码页面2.1
+class ForgotPwd2View(View):
+    def get(self,request):
+        #1获取参数
+        mobile = request.GET.get("mobile")
+        #2校验参数
+        if not re.match(r'^[1][3-9]\d{9}$', mobile):
+            return http.JsonResponse("phone_num error")
+        redis_conn=get_redis_connection("code")
+        # 判断短信是否发送频繁
+        send_flag = redis_conn.get("send_flag_%s" % mobile)
+        if send_flag:
+            return http.JsonResponse({
+                "errmsg": "频繁发送", "code": 10
+            })
+        # 2.2生成6位随机数字
+        sms_code = "%06d" % random.randint(0, 999999)
+
+        # 2.3使用celery发送短信
+        from celery_tasks.send_message.tasks import send_sms_code
+        send_sms_code.delay(mobile, sms_code, 5)
+        print("sms_code=%s!!!" % sms_code)
+        # 4 pipeline 通过减少客户端与Redis的通信次数来实现降低往返延时时间
+        # 保存至redis中
+        pipeline = redis_conn.pipeline()  # 保存
+        pipeline.setex("sms_code_%s" % mobile, 300, sms_code)
+        pipeline.setex("send_flag_%s" % mobile, 60, 1)
+        pipeline.execute()  # 提交
+
+        return http.JsonResponse({"sms_code":sms_code})
+
+
+#忘记密码页面2.2   accounts/bo009/password/token/?sms_code=295090
+class ForgotPwd22View(View):
+    def get(self,request,username):
+        #通过username取得user对象
+        user=User.objects.get(username=username)
+        mobile=user.mobile
+
+        #1 获取参数
+        #表单传参
+        sms_code=request.GET.get("sms_code")
+        #redis真实数据
+        redis_conn=get_redis_connection("code")
+        sms_code_id=redis_conn.get("sms_code_%s" % mobile)
+
+        #判断短信验证码正确性
+        if sms_code != sms_code_id.decode():
+            return http.JsonResponse({"status":400})
+
+        user_id=user.id
+
+        return http.JsonResponse({"user_id":user_id})
+
+#3页面3  ForgotPwd3View  POST /users/1/password/
+class ForgotPwd3View(View):
+    def post(self,request,user_id):
+        #1获取参数
+        # password = request.POST.get("password")
+        # password2 = request.POST.get("password2")
+        dict_data = json.loads(request.body.decode())
+        password = dict_data.get("password")
+        password2 = dict_data.get("password2")
+
+        #2校验参数
+        if not all([password,password2]):
+            return http.JsonResponse({"status":400})
+
+        if  password != password2:
+            return http.JsonResponse({"status":404})
+        #2.3用户存在性
+        try:
+            user=User.objects.get(id=user_id)
+        except User.DoesNotExist:
+            return http.JsonResponse({"status":401})
+        #3.修改参数
+        user.set_password(password)
+        #保存
+        user.save()
+
+        #4返回响应
+        return http.JsonResponse({"code":0})
+        
+
 
 

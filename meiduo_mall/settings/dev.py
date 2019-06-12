@@ -50,6 +50,7 @@ INSTALLED_APPS = (
     'carts.apps.CartsConfig',
     'orders.apps.OrdersConfig',
     'payment.apps.PaymentConfig',
+    'django_crontab',
 
 
 
@@ -272,4 +273,18 @@ ALIPAY_APPID = '2016093000629834'  #我的
 ALIPAY_DEBUG = True
 ALIPAY_URL = 'https://openapi.alipaydev.com/gateway.do?'
 ALIPAY_RETURN_URL = 'http://www.meiduo.site:8000/payment/status/'
+
+
+#定时任务
+CRONJOBS = [
+    # 第一颗星: 分
+    # 第二颗星: 时
+    # 第三颗星: 日
+    # 第四颗星: 月
+    # 第五颗星: 周
+    # 每1分钟生成一次首页静态文件, 参数2,需要执行的方法,  参数3,日志文件的存放位置
+    ('*/1 * * * *', 'contents.crons.generate_static_index_html', '>> ' + os.path.join(os.path.dirname(BASE_DIR), 'logs/crontab.log'))
+]
+CRONTAB_COMMAND_PREFIX = 'LANG_ALL=zh_cn.UTF-8'
+
 

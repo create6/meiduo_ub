@@ -94,7 +94,8 @@
                         {# 订单右侧信息，总价等信息  读取订单信息表中的参数#}
 						<td width="15%">{{ order.total_amount+order.freight  }}元<br>含运费：{{ order.freight }}元</td>
 						<td width="15%">{{ order.paymethod_name }}</td>
-						<td width="15%"><a href="/static/goods_judge.html" class="oper_btn">{{ order.status_name }}</a></td>
+{#						<td width="15%"><a href="/orders/comment/" class="oper_btn">{{ order.status_name }}</a></td>#}
+						<td width="15%"><a @click="oper_btn_click({{ order.order_id }},{{ order.status }})" class="oper_btn">{{ order.status_name }}</a></td>
 					</tr>
 				</tbody>
 			</table>

@@ -14,6 +14,7 @@ class User(AbstractUser):
 
     class Meta:
         db_table="tb_users"
+
     def __str__(self):
         return self.username
 

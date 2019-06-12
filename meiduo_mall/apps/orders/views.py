@@ -235,6 +235,33 @@ class UserOrderInfoView(MyLoginRequiredMiXinView):
 
         return render(request,"user_center_order.html",context=context)
 
+#商品评价  /orders/comment/?order_id=' + order_id;  orders/comment/?order_id=20190612113719000000
+class OrderCommentView(MyLoginRequiredMiXinView):
+    def get(self,request):
+        #获取参数，订单号，用户名等
+        order_id=request.GET.get("order_id")
 
+        #2.校验参数
+        try:
+            OrderInfo.objects.get(order_id=order_id,user=request.user)
+        except OrderInfo.DoesNotExist:
+            return http.HttpResponseNotFound("订单不存在")
+        #查询订单中未评价的商品
+        try:
+            uncomment_goods=OrderGoods.objects.filter(order_id=order_id, is_commented=False)
+        except Exception:
+            http.HttpResponseNotFound("订单商品信息出错")
+
+        #3传参  ,查看goods_judge.html中需要的参数，传之
+        uncomment_goods_list=[]
+        for goods in uncomment_goods:
+            uncomment_goods_list.append({
+                "name ":goods.name,
+                "price":str(goods.price),
+                "default_image_url":goods.sku.default_image_url
+            })
+        # return render(request,"goods_judge.html",context=context)
+
+        return http.JsonResponse({"skus":uncomment_goods_list})
 
 

@@ -31,6 +31,20 @@ urlpatterns=[
     url(r'^password/$',views.ModifyPassWordView.as_view(),name='modify_password'),
     #浏览记录，路径来自detail.js请求:var url = this.hots + '/browse_histories/'
     url(r'^browse_histories/$',views.BrowseHistoryView.as_view(),name='modify_password'),
+    #进入忘记密码页面
+    url(r'^forgot_pwd/$',views.ForgotPwdView.as_view(),name='forgot_password'),
+
+    # accounts/' + this.username + '/sms/token/?text='+ this.image_code + '&image_code_id=' + this.image_code_id, {
+    #页面1
+    url(r'^accounts/(?P<username>\w{5,20})/sms/token/$',views.ForgotPwd1View.as_view()),
+    #页面2   /sms_codes/?mobile=13059185800
+    url(r'^sms_codes/$',views.ForgotPwd2View.as_view()),
+    #页面2.2   accounts/bo009/password/token/?sms_code=295090
+    url(r'^accounts/(?P<username>\w{5,20})/password/token/$',views.ForgotPwd22View.as_view()),
+    #页面3 POST /users/1/password/
+    url(r'^users/(?P<user_id>\d+)/password/$',views.ForgotPwd3View.as_view()),
+
+
 
 
 

@@ -12,6 +12,8 @@ class ImageCodeView(View):
     def get(self,request,image_code_id):
         #1.
         text,image_data=captcha.generate_captcha()
+        print("text---%s"%text)
+        # print("image_code_id%s"%image_code_id)
 
         #2,save image to redis 要在settings中配置
         redis_conn=get_redis_connection("code")
@@ -63,7 +65,6 @@ class SmsCodeView(View):
         # ccp.send_template_sms(mobile,[sms_code,5],1)
         # #保存至redis中  setex分别传入的参数key,time,value
         # redis_conn.setex("sms_code_%s"%mobile,60,sms_code)
-
 
         #[2]使用celery发送短信
         from celery_tasks.send_message.tasks import send_sms_code

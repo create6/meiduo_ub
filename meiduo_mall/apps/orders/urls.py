@@ -10,5 +10,7 @@ urlpatterns=[
     url(r'^orders/success/$',views.OrderSuccessView.as_view()),
     #用户订单展示
     url(r'^orders/info/(?P<page_num>\d+)/$',views.UserOrderInfoView.as_view()),
+    #评价页面在/orders/comment/?order_id=' + order_id;
+    url(r'^orders/comment/$',views.OrderCommentView.as_view()),
 
     ]
