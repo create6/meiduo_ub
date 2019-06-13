@@ -20,7 +20,7 @@ var vm = new Vue({
                 responseType: 'json'
             })
             .then(response => {
-                this.skus = response.data;
+                this.skus = response.data.skus;
                 for(var i=0;i<this.skus.length;i++){
                     this.skus[i].url = '/goods/' + this.skus[i].id + '.html';
                     Vue.set(this.skus[i], 'score', 0); // 记录随鼠标变动的星星数
@@ -35,6 +35,20 @@ var vm = new Vue({
             })
     },
     methods: {
+            getCookie: function (cname) {
+            var name = cname + "=";
+             var ca = document.cookie.split(';');
+            console.log("获取cookie,现在循环")
+            for (var i = 0; i < ca.length; i++) {
+            var c = ca[i];
+            console.log(c)
+             while (c.charAt(0) == ' ') c = c.substring(1);
+            if (c.indexOf(name) != -1){
+             return c.substring(name.length, c.length);
+            }
+            }
+            return "";},
+
         // 退出
         logout: function(){
             sessionStorage.clear();
@@ -63,18 +77,20 @@ var vm = new Vue({
         },
         save_comment: function(index){
             var sku = this.skus[index];
-            if (sku.comment.length < 5){
+            //修改
+            if (sku.comment.length < 5 && sku.comment.length !== 0 ){
                 alert('请填写多余5个字的评价内容');
             } else {
                 axios.post(this.host+'/orders/'+this.order_id+'/comments/', {
                         order: this.order_id,
-                        sku: sku.sku.id,
+                        sku: sku.sku_id,
                         comment: sku.comment,
                         score: sku.final_score,
                         is_anonymous: sku.is_anonymous,
                     }, {
                         headers: {
-                            'Authorization': 'JWT ' + this.token
+                            'X-CSRFToken':this.getCookie('csrftoken'),   //
+                            // 'Authorization': 'JWT ' + this.token
                         },
                         responseType: 'json'
                     })

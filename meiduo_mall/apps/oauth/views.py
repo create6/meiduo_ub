@@ -5,11 +5,13 @@ from django.shortcuts import render, redirect
 from django.views import View
 from django.conf import settings
 from QQLoginTool.QQtool import OAuthQQ
-from oauth.models import OAuthQQUser
+from oauth.models import OAuthQQUser, OAuthSinaUser
 from oauth.utils import generate_sign_openid,decode_sign_openid
 from django_redis import get_redis_connection
 from carts.utils import merge_cookie_redis_cart#合并购物车
 from users.models import User
+from oauth.sinaweibopy3 import APIClient
+
 
 
 class OAuthQQLoginView(View):
@@ -26,7 +28,6 @@ class OAuthQQLoginView(View):
         login_url=oauth_qq.get_qq_url()
         #返回
         return http.JsonResponse({"login_url":login_url})
-
 
 class OAuthUserView(View):
     def get(self, request):
@@ -50,13 +51,13 @@ class OAuthUserView(View):
         try:
             oauth_qq_user=OAuthQQUser.objects.get(openid=openid)
         except OAuthQQUser.DoesNotExist:
-            #初次授权
+            #初次授权，需要配合表单提交，传参，验证
             #调用utils文件中的加密方法
             sign_openid=generate_sign_openid(openid)
             #下面的"token"是oauth_callback.html中的参数名称,openid存入url中
             return render(request, 'oauth_callback.html',context={"token":sign_openid})
         else:
-            #5，非初次授权
+            #5，非初次授权,直接登录成功
             user=oauth_qq_user.user
             #5.1 状态保持
             login(request,user)
@@ -68,6 +69,7 @@ class OAuthUserView(View):
             #返回响应
             return response
 
+    #处理初次授权用户表单提交
     def post(self,request):
         #1,获取参数,参数来自oauth_callback.html
         sign_openid =request.POST.get("access_token")
@@ -139,5 +141,74 @@ class OAuthUserView(View):
             # 合并购物车
             response = merge_cookie_redis_cart(request, user, response)
             return response
+
+
+#sina login
+class SinaLoginView(View):
+    def get(self,request):
+        #1,获取参数
+        state = request.GET.get("next","/")
+        #2.创建OAuthQQ对象
+
+        oauth_sina = APIClient(app_key=settings.APP_KEY,
+                               app_secret=settings.APP_SECRET,
+                               redirect_uri=settings.REDIRECT_URL,
+
+                               )
+
+        #获取sina登陆页面
+        login_url=oauth_sina.get_authorize_url()
+        #返回
+        return http.JsonResponse({"login_url":login_url})
+
+#sina callback   根据前端需求，此接口仅需响应页面，不需要其他参数
+class SinaCallBackView(View):
+    def get(self,request):
+        #1获取参数
+        return render(request,"sina_callback.html")
+
+
+#此请求由sina_callback.html   加载的js文件发出的请求
+#  axios.get(this.host + '/oauth/sina/user/?code=' + code, {responseType: 'json',
+class SinaCallBack2View(View):
+    def get(self,request):
+        #获取参数
+        code=request.GET.get("code")
+        if not code:
+            return http.HttpResponseForbidden("code丢失")
+        #对象
+        oauth_sina = APIClient(app_key=settings.APP_KEY,
+                               app_secret=settings.APP_SECRET,
+                               redirect_uri=settings.REDIRECT_URL,
+
+                               )
+
+        result=oauth_sina.request_access_token(code)
+        access_token=result.access_token
+        uid=result.uid
+
+        # 4根据uid，取到sina用户对象,查询数据库
+        try:
+            oauth_sina_user = OAuthSinaUser.objects.get(uid=uid)
+        except OAuthSinaUser.DoesNotExist:
+            # 初次授权
+            # 调用utils文件中的加密方法
+            sign_uid = generate_sign_openid(uid)
+            #TODO 下面的"access_token"是传递给js使用 ??
+            return http.JsonResponse({"access_token": sign_uid})
+
+        else:
+            # 5，非初次授权
+            user = oauth_sina_user.user
+            # 5.1 状态保持
+            login(request, user)
+            request.session.set_expiry(3600 * 24 * 2)
+            response = redirect("/")
+            response.set_cookie("username", user.username)
+            # 合并购物车
+            response = merge_cookie_redis_cart(request, user, response)
+            # 返回响应
+            return response
+
 
 

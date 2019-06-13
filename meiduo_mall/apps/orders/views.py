@@ -211,8 +211,8 @@ class OrderSuccessView(MyLoginRequiredMiXinView):
 class UserOrderInfoView(MyLoginRequiredMiXinView):
     def get(self,request,page_num):
         #1查询用户订单
-        # OrderInfo.objects.filter(user_id=request.user.id)
-        orders=request.user.orders.order_by("-create_time")
+        # OrderInfo.objects.filter(user_id=request.user.id)  #表示法1
+        orders=request.user.orders.order_by("-create_time") #表示法2
 
         #1.1处理支付方式和状态（订单中心查看订单状态）
         for order in orders:
@@ -236,32 +236,101 @@ class UserOrderInfoView(MyLoginRequiredMiXinView):
         return render(request,"user_center_order.html",context=context)
 
 #商品评价  /orders/comment/?order_id=' + order_id;  orders/comment/?order_id=20190612113719000000
-class OrderCommentView(MyLoginRequiredMiXinView):
+class OrderCommentView(MyLoginRequiredMiXinView):  #此接口只要渲染页面
     def get(self,request):
-        #获取参数，订单号，用户名等
-        order_id=request.GET.get("order_id")
+        return render(request,"goods_judge.html")
 
-        #2.校验参数
+
+# 给评价页面传参   orders/'+this.order_id+'/uncommentgoods/
+class CommentGoodsView(View):
+    def get(self,request,order_id):
+        # 1获取参数，订单号，用户名等
+
+
+        # 2.校验参数
         try:
-            OrderInfo.objects.get(order_id=order_id,user=request.user)
+            OrderInfo.objects.get(order_id=order_id, user=request.user)
         except OrderInfo.DoesNotExist:
             return http.HttpResponseNotFound("订单不存在")
-        #查询订单中未评价的商品
+        # 查询订单中未评价的商品
         try:
-            uncomment_goods=OrderGoods.objects.filter(order_id=order_id, is_commented=False)
+            uncomment_goods = OrderGoods.objects.filter(order_id=order_id, is_commented=False)
         except Exception:
             http.HttpResponseNotFound("订单商品信息出错")
 
-        #3传参  ,查看goods_judge.html中需要的参数，传之
-        uncomment_goods_list=[]
+        # 3传参  ,查看goods_judge.html中需要的参数，传之
+        uncomment_goods_list = []
         for goods in uncomment_goods:
             uncomment_goods_list.append({
-                "name ":goods.name,
-                "price":str(goods.price),
-                "default_image_url":goods.sku.default_image_url
+                'sku_id': goods.sku.id,
+                "name ": goods.sku.name,
+                "price": str(goods.price),
+                "default_image_url": goods.sku.default_image_url.url
             })
-        # return render(request,"goods_judge.html",context=context)
 
-        return http.JsonResponse({"skus":uncomment_goods_list})
+        return http.JsonResponse({'skus': uncomment_goods_list})
 
+#2
+class CommentGoods2View(View):
+    def post(self, request,order_id):
+
+        # 1获取参数
+        json_dict = json.loads(request.body.decode())
+        # order_id = json_dict.get('order_id')
+        sku_id = json_dict.get('sku')
+        score = json_dict.get('score')
+        comment = json_dict.get('comment')
+        is_anonymous = json_dict.get('is_anonymous')
+
+        # 2校验参数
+        # 为空检验：
+        if not all([order_id, sku_id, score]):  # 评价与是否匿名非必选
+            return http.HttpResponseForbidden("缺少必要参数")
+        # 检验order
+        try:
+            OrderInfo.objects.filter(order_id=order_id, user=request.user,
+                                     status=OrderInfo.ORDER_STATUS_ENUM['UNCOMMENT'])
+        except OrderInfo.DoesNotExist:
+            return http.HttpResponseForbidden("订单不存在")
+        # 检验sku
+        try:
+            sku = SKU.objects.get(id=sku_id)
+        except SKU.DoesNotExist:
+            return http.HttpResponseForbidden("商品不存在")
+        # is_anonymous 是否为bool
+        if is_anonymous:
+            if not isinstance(is_anonymous, bool):
+                return http.HttpResponseForbidden("参数错误")
+
+        # 是否评论
+        if comment:
+            if len(comment)< 5:
+                return http.HttpResponseForbidden("评论字数不够")
+            # 已评论，字数大于5
+            is_commented = True
+        else:
+            # 未评论
+            is_commented = False
+
+        # 3入库
+        OrderGoods.objects.filter(order_id=order_id, sku_id=sku_id, is_commented=False).update(
+            comment=comment,
+            score=score,
+            is_anonymous=is_anonymous,
+            is_commented=is_commented
+
+        )
+
+        # 累计评论数据
+        sku.comments += 1
+        sku.save()
+        sku.spu.comments += 1
+        sku.spu.save()
+
+        # 如果所有订单商品都已评价，则修改订单状态为已完成
+        if OrderGoods.objects.filter(order_id=order_id, is_commented=False).count() == 0:
+            OrderInfo.objects.filter(order_id=order_id).update(status=OrderInfo.ORDER_STATUS_ENUM['FINISHED'])
+
+        # 响应
+        return http.JsonResponse({'code': 0, 'errmsg': '评价成功'})
 

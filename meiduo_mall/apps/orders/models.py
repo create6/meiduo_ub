@@ -65,7 +65,7 @@ class OrderGoods(BaseModel):
     comment = models.TextField(default="", verbose_name="评价信息")
     score = models.SmallIntegerField(choices=SCORE_CHOICES, default=5, verbose_name='满意度评分')
     is_anonymous = models.BooleanField(default=False, verbose_name='是否匿名评价')
-    is_commented = models.BooleanField(default=False, verbose_name='是否评价了')
+    is_commented = models.BooleanField(default=False, verbose_name='是否评价')
 
     class Meta:
         db_table = "tb_order_goods"

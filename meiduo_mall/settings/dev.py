@@ -233,6 +233,12 @@ QQ_CLIENT_ID = '101518219'
 QQ_CLIENT_SECRET = '418d84ebdc7241efb79536886ae95224'
 QQ_REDIRECT_URI = 'http://www.meiduo.site:8000/oauth_callback'
 
+#sina
+APP_KEY = '3305669385' #app_key
+APP_SECRET = '74c7bea69d5fc64f5c3b80c802325276'  #app_secret
+REDIRECT_URL = 'http://www.meiduo.site:8000/sina_callback'  #跳转连接
+
+
 #邮件发送配置
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend' # 指定邮件后端
 EMAIL_HOST = 'smtp.126.com' # 发邮件主机

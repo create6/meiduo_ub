@@ -12,5 +12,9 @@ urlpatterns=[
     url(r'^orders/info/(?P<page_num>\d+)/$',views.UserOrderInfoView.as_view()),
     #评价页面在/orders/comment/?order_id=' + order_id;
     url(r'^orders/comment/$',views.OrderCommentView.as_view()),
+    #给评价页面传参   orders/'+this.order_id+'/uncommentgoods/
+    url(r'^orders/(?P<order_id>\d+)/uncommentgoods/$',views.CommentGoodsView.as_view()),
+    #orders/'+this.order_id+'/comments/
+    url(r'^orders/(?P<order_id>\d+)/comments/$',views.CommentGoods2View.as_view()),
 
     ]
