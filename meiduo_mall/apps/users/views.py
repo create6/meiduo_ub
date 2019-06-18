@@ -232,7 +232,7 @@ class SendEmail(MyLoginRequiredMiXinView):
         #           recipient_list=[email])
 
         # 3,发送邮件
-        from utils.email import generate_verify_url
+        from meiduo_mall.utils.email import generate_verify_url
         from celery_tasks.email.tasks import sendEmail
         #调用加密
         verify_url = generate_verify_url(request.user)
@@ -246,6 +246,7 @@ class SendEmail(MyLoginRequiredMiXinView):
         #           from_email=settings.EMAIL_FROM,
         #           recipient_list=[email])
         print('already send email')
+
         # 4,数据入库
         request.user.email = email
         request.user.save()
