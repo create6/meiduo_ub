@@ -4,6 +4,8 @@ git add .
 git commit -m 'udpate'
 git push
 
+echo 'push success!'
+
 #bash 向python向传参
 ~/Desktop/myshell/source/sendEmail_1.py success push by $(pwd)
 
