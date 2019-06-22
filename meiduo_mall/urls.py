@@ -40,6 +40,8 @@ urlpatterns = [
     url(r'^', include('orders.urls', namespace='orders')),
     #支付
     url(r'^', include('payment.urls', namespace='payment')),
+    #admin
+    url(r'^meiduo_admin', include('meiduoAdmin.urls')),
 
 
 ]

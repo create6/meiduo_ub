@@ -51,6 +51,7 @@ INSTALLED_APPS = (
     'orders.apps.OrdersConfig',
     'payment.apps.PaymentConfig',
     'django_crontab',
+    'corsheaders',
 
 
 
@@ -69,6 +70,7 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'django.middleware.security.SecurityMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
 )
 
 ROOT_URLCONF = 'meiduo_mall.urls'
@@ -292,5 +294,30 @@ CRONJOBS = [
     ('*/1 * * * *', 'contents.crons.generate_static_index_html', '>> ' + os.path.join(os.path.dirname(BASE_DIR), 'logs/crontab.log'))
 ]
 CRONTAB_COMMAND_PREFIX = 'LANG_ALL=zh_cn.UTF-8'
+
+
+# CORS
+CORS_ORIGIN_WHITELIST = (
+    '127.0.0.1:8080',
+    'localhost:8080',
+    'www.meiduo.site:8080',
+    'api.meiduo.site:8000'
+)
+CORS_ALLOW_CREDENTIALS = True  # 允许携带cookie
+
+REST_FRAMEWORK = {
+            'DEFAULT_AUTHENTICATION_CLASSES':('rest_framework_jwt.authentication.JSONWebTokenAuthentication',
+                 'rest_framework.authentication.SessionAuthentication',
+                 'rest_framework.authentication.BasicAuthentication',
+                                            ),
+            }
+
+import datetime
+JWT_AUTH = {'JWT_EXPIRATION_DELTA': datetime.timedelta(days=1),}
+
+
+
+
+
 
 
