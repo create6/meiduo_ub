@@ -1,7 +1,6 @@
 
 from django.shortcuts import render
 from django.views import View
-
 from contents.models import ContentCategory
 from goods.models import GoodsChannel
 from meiduo_mall.utils.My_categoery import get_categories

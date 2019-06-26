@@ -68,6 +68,7 @@ class SmsCodeView(View):
 
         #[2]使用celery发送短信
         from celery_tasks.send_message.tasks import send_sms_code
+
         send_sms_code.delay(mobile,sms_code,5)
         print("sms_code=%s!!!"%sms_code)
 

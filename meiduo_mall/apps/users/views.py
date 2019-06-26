@@ -3,8 +3,6 @@ import random
 import re
 from django import http
 from django.contrib.auth import authenticate, login, logout
-
-
 from django.shortcuts import render,redirect
 from django.views import View
 from django_redis import get_redis_connection
