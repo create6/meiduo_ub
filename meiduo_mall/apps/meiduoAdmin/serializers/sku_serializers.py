@@ -21,7 +21,7 @@ class SKUSerializer(serializers.ModelSerializer):
     specs=SKUSpecificationSerializer()
 
     class Meta:
-        model = SKUSerializer
+        model = SPUSpecification
         fields = "__all__"
     #4,重写create方法
     @transaction.atomic

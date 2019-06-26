@@ -67,7 +67,7 @@ class UserMonthIncrementView(APIView):
 
 #6,日分类商品访问量
 class UserGoodsDayView(GenericAPIView):
-	serializer_class = serializers.UserGoodsDaySerializer
+	serializer_class = home_serializers.UserGoodsDaySerializer
 	def get_querset(self,request):
 		#1,获取当天日期
 		today=date.today()

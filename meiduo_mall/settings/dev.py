@@ -256,6 +256,11 @@ EMAIL_VERIFY_URL = 'http://www.meiduo.site:8000/emails/verification/'
 
 BASE_URL = "http://image.meiduo.site:8888/"
 
+#fdfs 配置文件路径
+FDFS_CONFIG=os.path.join(BASE_DIR,'utils/fdfs/client.conf')
+# print(FDFS_CONFIG)
+
+
 #指定自己的文件存储类
 DEFAULT_FILE_STORAGE = 'meiduo_mall.utils.fdfs.MyFileStorage.MyStorage'
 # meiduo_mall.utils.fdfs.MyFileStorage.MyStorage 类copy Reference
