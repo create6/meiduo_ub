@@ -2,9 +2,8 @@ from django.conf.urls import url
 from rest_framework.routers import DefaultRouter
 from rest_framework_jwt.views import obtain_jwt_token
 from meiduoAdmin.views import home_views,sku_views,spu_views,user_views
-
-
-
+from meiduoAdmin.views import spu_specsOptionViews
+from meiduoAdmin.views import spu_specs_views
 
 urlpatterns=[
         #---------------首页部分
@@ -27,10 +26,31 @@ urlpatterns=[
         url(r'^goods/channel/categories/(?P<pk>\d+)/$',spu_views.SPUView.as_view({"get":"category_sub"})),
         #上传图片
         url(r'^goods/images/$',spu_views.SPUView.as_view({"post":"upload_image"})),
+#
+        url(r'^goods/specs/simple/$',spu_specsOptionViews.SpuSpecsView.as_view()),
+
+
 
         ]
 
 
+
+
+
+#---------------spu_specs_option部分
+#1,创建路由
+router = DefaultRouter()
+#2,注册视图集
+router.register(r'specs/options',spu_specsOptionViews.SpuSpecOptionView,base_name="specOptions")
+#3,添加路由到urlpatterns
+urlpatterns += router.urls
+#---------------spu_specs部分
+#1,创建路由
+router = DefaultRouter()
+#2,注册视图集
+router.register(r'goods/specs',spu_specs_views.SpuSpecView,base_name="spes")
+#3,添加路由到urlpatterns
+urlpatterns += router.urls
 #---------------spu部分
 #1,创建路由
 router = DefaultRouter()
