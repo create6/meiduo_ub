@@ -5,7 +5,7 @@ from meiduoAdmin.my_paginate import MyPageNumberPagination
 from meiduoAdmin.serializers import sku_image_serializers
 from goods.models import SKUImage, SKU
 from django.conf import settings
-
+from meiduo_mall.utils.fdfs.MyFileStorage import Storage
 #1,获取图片数据
 class SkuImagesView(ModelViewSet):
     pagination_class = MyPageNumberPagination
@@ -30,16 +30,10 @@ class SkuImagesView(ModelViewSet):
         serializer=self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         #3,入库，上传图片
-        #3.1 导入fdfs 配置文件
-        client=Fdfs_client(settings.FDFS_CONFIG)
-        result=client.upload_by_buffer(image.read())
-
-        #3.2判断是否上传成功
-        if result["Status"]  != "Upload successed.":
+        image_url=Storage().save(None,image)
+        if not image_url :
             return Response({"errmsg":"上传失败"},status=400)
 
-        #3.3 取出图片
-        image_url=result["Remote file_id"]
         #3.4 入库
         SKUImage.objects.create(sku_id=sku_id,image=image_url)
 
@@ -47,4 +41,4 @@ class SkuImagesView(ModelViewSet):
         return Response(status=201)
 
 
-        pass
+
