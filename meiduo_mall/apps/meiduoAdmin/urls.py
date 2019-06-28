@@ -2,6 +2,7 @@ from django.conf.urls import url
 from rest_framework.routers import DefaultRouter
 from rest_framework_jwt.views import obtain_jwt_token
 from meiduoAdmin.views import home_views,sku_views,spu_views,user_views
+from meiduoAdmin.views import orders_views
 from meiduoAdmin.views import sku_image_views
 from meiduoAdmin.views import spu_specsOptionViews
 from meiduoAdmin.views import spu_specs_views
@@ -32,15 +33,25 @@ urlpatterns=[
         url(r'^goods/specs/simple/$',spu_specsOptionViews.SpuSpecsView.as_view()),
         #商品sku image
         url(r'^skus/simple/$',sku_image_views.SkuImagesView.as_view({"get":"sku_simple"})),
-        #
-
+        # #orders
+        # url(r'^orders/$',orders_views.OrdersView.as_view()),
+        # #单个订单
+        # url(r'^orders/(?P<pk>\d+)/$',orders_views.OrderView.as_view()),
+        #订单状态
+        # url(r'^orders/(?P<pk>\d+)/status/$',orders_views.OrdersReadOnlyView.as_view()),
 
 
         ]
 
 
 
-
+#---------------订单部分
+#1,创建路由
+router = DefaultRouter()
+#2,注册视图集
+router.register(r'orders',orders_views.OrdersReadOnlyView,base_name="orders")
+#3,添加路由到urlpatterns
+urlpatterns += router.urls
 #---------------spu_image部分
 #1,创建路由
 router = DefaultRouter()
